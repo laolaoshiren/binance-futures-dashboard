@@ -29,11 +29,14 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# 检查是否为root用户
+# 检查用户权限（不再强制要求 root）
 check_root() {
-    if [ "$EUID" -ne 0 ]; then 
-        print_error "请使用 root 用户运行此脚本"
-        exit 1
+    # 不再强制要求 root 用户，但如果是 root 用户会给出提示
+    if [ "$EUID" -eq 0 ]; then
+        print_warning "检测到使用 root 用户运行，项目将安装在 /root 目录下"
+        print_info "如需安装到其他用户目录，请使用该用户运行此脚本"
+    else
+        print_info "使用当前用户运行，项目将安装在 $HOME 目录下"
     fi
 }
 
@@ -55,11 +58,16 @@ check_docker() {
         print_success "Docker Compose 已安装: $(docker-compose --version)"
     fi
     
-    # 启动Docker服务
-    if ! systemctl is-active --quiet docker; then
-        print_info "启动 Docker 服务..."
-        systemctl start docker
-        systemctl enable docker
+    # 启动Docker服务（需要 root 权限）
+    if ! systemctl is-active --quiet docker 2>/dev/null; then
+        if [ "$EUID" -eq 0 ]; then
+            print_info "启动 Docker 服务..."
+            systemctl start docker
+            systemctl enable docker
+        else
+            print_warning "Docker 服务未运行，请使用 sudo 启动或联系管理员"
+            print_info "可以使用: sudo systemctl start docker"
+        fi
     fi
 }
 
@@ -101,7 +109,23 @@ install_docker_compose() {
 
 # 创建项目目录
 create_project_dir() {
-    PROJECT_DIR="/opt/binance-viewer"
+    # 获取当前登录用户的主目录
+    if [ "$EUID" -eq 0 ]; then
+        # 如果是 root 用户，尝试获取实际登录用户
+        REAL_USER="${SUDO_USER:-${USER:-$(whoami)}}"
+        if [ "$REAL_USER" = "root" ]; then
+            # 如果确实是 root，使用 /root
+            USER_HOME="/root"
+        else
+            # 获取实际用户的主目录
+            USER_HOME=$(eval echo ~$REAL_USER)
+        fi
+    else
+        # 非 root 用户，使用当前用户主目录
+        USER_HOME="$HOME"
+    fi
+    
+    PROJECT_DIR="$USER_HOME/binance-futures-dashboard"
     
     if [ ! -d "$PROJECT_DIR" ]; then
         print_info "创建项目目录: $PROJECT_DIR"
