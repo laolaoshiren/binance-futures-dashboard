@@ -1,6 +1,10 @@
-# 币安合约记录展示系统
+# Binance Futures Dashboard
+
+> 币安合约记录展示系统 | A real-time Binance Futures trading dashboard
 
 一个基于 Node.js 和 Express 的币安合约交易记录可视化系统，提供实时账户信息、持仓、交易历史等数据的展示。
+
+A Node.js and Express-based Binance Futures trading record visualization system that provides real-time account information, positions, trading history, and more.
 
 ## ✨ 功能特性
 
@@ -24,7 +28,7 @@
 1. **克隆项目**
 ```bash
 git clone <repository-url>
-cd 腾讯自动交易
+cd binance-futures-dashboard
 ```
 
 2. **安装依赖**
@@ -135,16 +139,17 @@ GET /api/income?limit=100
 ## 📁 项目结构
 
 ```
-腾讯自动交易/
-├── binanceAPI.js      # 币安API封装
-├── server.js          # Express服务器
-├── package.json       # 项目配置
-├── Dockerfile         # Docker镜像配置
-├── docker-compose.yml # Docker Compose配置
-├── public/            # 前端静态文件
-│   ├── index.html     # 主页面
-│   └── app.js         # 前端逻辑
-└── README.md          # 项目文档
+binance-futures-dashboard/
+├── binanceAPI.js      # 币安API封装 | Binance API wrapper
+├── server.js          # Express服务器 | Express server
+├── package.json       # 项目配置 | Project configuration
+├── Dockerfile         # Docker镜像配置 | Docker image configuration
+├── docker-compose.yml # Docker Compose配置 | Docker Compose configuration
+├── install.sh         # 一键安装脚本 | One-click installation script
+├── public/            # 前端静态文件 | Frontend static files
+│   ├── index.html     # 主页面 | Main page
+│   └── app.js         # 前端逻辑 | Frontend logic
+└── README.md          # 项目文档 | Project documentation
 ```
 
 ## 🛠️ 开发
@@ -163,23 +168,28 @@ npm run dev
 npm install --production
 ```
 
-## 📝 更新日志
+## 📝 更新日志 | Changelog
 
 ### v1.0.0
-- 初始版本发布
-- 支持账户信息、持仓、交易历史查看
-- 支持盈亏日历可视化
-- Docker 部署支持
+- 初始版本发布 | Initial release
+- 支持账户信息、持仓、交易历史查看 | Support for account info, positions, and trading history
+- 支持盈亏日历可视化 | Profit/loss calendar visualization
+- Docker 部署支持 | Docker deployment support
+- GitHub Actions CI/CD 配置 | GitHub Actions CI/CD configuration
 
-## 🤝 贡献
+## 🤝 贡献 | Contributing
 
 欢迎提交 Issue 和 Pull Request！
 
-## 📄 许可证
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📄 许可证 | License
 
 MIT License
 
-## ⚠️ 免责声明
+## ⚠️ 免责声明 | Disclaimer
 
 本工具仅供学习和研究使用，使用本工具进行交易产生的任何损失，开发者不承担任何责任。请谨慎使用API密钥，确保账户安全。
+
+This tool is for educational and research purposes only. The developers are not responsible for any losses incurred from using this tool for trading. Please use API keys with caution and ensure account security.
 

@@ -1,7 +1,7 @@
 {
-  "name": "binance-futures-viewer",
+  "name": "binance-futures-dashboard",
   "version": "1.0.0",
-  "description": "币安合约记录展示系统",
+  "description": "Binance Futures Dashboard - A real-time trading dashboard for Binance Futures",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

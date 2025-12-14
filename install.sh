@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# 币安合约记录展示系统 - 一键安装脚本
-# 适用于生产环境部署
+# Binance Futures Dashboard - 一键安装脚本
+# One-click installation script for production deployment
 
 set -e
 
@@ -196,7 +196,8 @@ show_info() {
 main() {
     echo
     print_info "=========================================="
-    print_info "  币安合约记录展示系统 - 一键安装"
+    print_info "  Binance Futures Dashboard - 一键安装"
+    print_info "  One-click Installation"
     print_info "=========================================="
     echo
     
