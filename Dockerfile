@@ -22,11 +22,11 @@ RUN addgroup -g 1001 -S nodejs && \
 USER nodejs
 
 # 暴露端口
-EXPOSE 3000
+EXPOSE 3031
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+  CMD node -e "require('http').get('http://localhost:3031/', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
 # 启动应用
 CMD ["node", "server.js"]

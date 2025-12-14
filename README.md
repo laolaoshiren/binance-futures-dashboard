@@ -1,10 +1,28 @@
 # Binance Futures Dashboard
 
+[![GitHub](https://img.shields.io/github/license/laolaoshiren/binance-futures-dashboard)](https://github.com/laolaoshiren/binance-futures-dashboard)
+[![GitHub stars](https://img.shields.io/github/stars/laolaoshiren/binance-futures-dashboard)](https://github.com/laolaoshiren/binance-futures-dashboard/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/laolaoshiren/binance-futures-dashboard)](https://github.com/laolaoshiren/binance-futures-dashboard/network)
+
 > 币安合约记录展示系统 | A real-time Binance Futures trading dashboard
+
+**项目地址**: [https://github.com/laolaoshiren/binance-futures-dashboard](https://github.com/laolaoshiren/binance-futures-dashboard)
 
 一个基于 Node.js 和 Express 的币安合约交易记录可视化系统，提供实时账户信息、持仓、交易历史等数据的展示。
 
 A Node.js and Express-based Binance Futures trading record visualization system that provides real-time account information, positions, trading history, and more.
+
+## 🚀 一键安装（生产环境推荐）
+
+```bash
+# 使用 curl
+curl -fsSL https://raw.githubusercontent.com/laolaoshiren/binance-futures-dashboard/main/install.sh | bash
+
+# 或使用 wget
+wget -qO- https://raw.githubusercontent.com/laolaoshiren/binance-futures-dashboard/main/install.sh | bash
+```
+
+> ⚠️ **注意**：安装脚本会自动检查 Docker 环境、拉取最新镜像并启动服务。启动后需要在网页上配置 API Key 和 Secret 才能使用。
 
 ## ✨ 功能特性
 
@@ -27,7 +45,7 @@ A Node.js and Express-based Binance Futures trading record visualization system 
 
 1. **克隆项目**
 ```bash
-git clone <repository-url>
+git clone https://github.com/laolaoshiren/binance-futures-dashboard.git
 cd binance-futures-dashboard
 ```
 
@@ -36,23 +54,23 @@ cd binance-futures-dashboard
 npm install
 ```
 
-3. **配置环境变量**
-
-创建 `.env` 文件并配置以下内容：
-```env
-BINANCE_API_KEY=your_api_key
-BINANCE_API_SECRET=your_api_secret
-PORT=3000
-```
-
-4. **启动服务**
+3. **启动服务**
 ```bash
 npm start
 ```
 
-5. **访问应用**
+4. **访问应用**
 
-打开浏览器访问：`http://localhost:3000`
+打开浏览器访问：`http://localhost:3031`
+
+5. **配置 API**
+
+- 点击页面右上角的 **"⚙️ 设置"** 按钮
+- 输入您的币安 API Key 和 Secret
+- 点击 **"保存配置"** 或 **"测试连接"** 验证配置
+- 配置成功后即可使用系统功能
+
+> 💡 **提示**：API 密钥仅存储在浏览器会话中，不会保存到服务器，关闭浏览器后需要重新配置。
 
 ## 🐳 Docker 部署
 
@@ -71,27 +89,13 @@ docker build -t binance-futures-viewer .
 # 运行容器
 docker run -d \
   --name binance-viewer \
-  -p 3000:3000 \
-  -e BINANCE_API_KEY=your_api_key \
-  -e BINANCE_API_SECRET=your_api_secret \
+  -p 3031:3031 \
   binance-futures-viewer
 ```
 
-### 一键安装脚本（生产环境）
+### 一键安装脚本
 
-```bash
-# 下载并运行一键安装脚本
-curl -fsSL https://raw.githubusercontent.com/your-repo/install.sh | bash
-
-# 或使用 wget
-wget -qO- https://raw.githubusercontent.com/your-repo/install.sh | bash
-```
-
-安装脚本会自动：
-- 检查 Docker 环境
-- 拉取最新镜像
-- 配置环境变量
-- 启动服务
+一键安装命令已移至文档最上方，请查看 [🚀 一键安装](#-一键安装生产环境推荐) 部分。
 
 ## 📖 API 接口
 
@@ -126,15 +130,20 @@ GET /api/income?limit=100
 
 | 变量名 | 说明 | 必填 | 默认值 |
 |--------|------|------|--------|
-| `BINANCE_API_KEY` | 币安API密钥 | 是 | - |
-| `BINANCE_API_SECRET` | 币安API密钥 | 是 | - |
-| `PORT` | 服务端口 | 否 | 3000 |
+| `PORT` | 服务端口 | 否 | 3031 |
+
+### API 配置说明
+
+- **配置方式**：在网页上通过设置界面配置，无需环境变量
+- **存储方式**：API 密钥存储在浏览器会话（Session）中，关闭浏览器后需要重新配置
+- **安全性**：密钥不会保存到服务器或数据库，仅在当前会话中有效
 
 ### 安全建议
 
 1. **API密钥权限**：建议只授予"读取"权限，不要授予交易权限
 2. **IP白名单**：在币安API设置中配置IP白名单
-3. **环境变量**：生产环境使用环境变量或密钥管理服务，不要提交到代码仓库
+3. **会话安全**：使用 HTTPS 访问以保护会话安全
+4. **定期更换**：定期更换 API 密钥以提高安全性
 
 ## 📁 项目结构
 
@@ -182,6 +191,10 @@ npm install --production
 欢迎提交 Issue 和 Pull Request！
 
 Contributions are welcome! Please feel free to submit a Pull Request.
+
+- 📦 项目地址：[https://github.com/laolaoshiren/binance-futures-dashboard](https://github.com/laolaoshiren/binance-futures-dashboard)
+- 🐛 问题反馈：[Issues](https://github.com/laolaoshiren/binance-futures-dashboard/issues)
+- 💡 功能建议：[Pull Requests](https://github.com/laolaoshiren/binance-futures-dashboard/pulls)
 
 ## 📄 许可证 | License
 

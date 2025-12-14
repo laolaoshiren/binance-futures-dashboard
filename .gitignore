@@ -2,10 +2,10 @@
 node_modules/
 package-lock.json
 
-# 环境变量
-.env
-.env.local
-.env.*.local
+# 环境变量（已不再使用，保留以防旧版本）
+# .env
+# .env.local
+# .env.*.local
 
 # 日志文件
 *.log

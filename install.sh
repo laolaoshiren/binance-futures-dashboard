@@ -127,29 +127,12 @@ download_project() {
     fi
 }
 
-# 配置环境变量
-setup_env() {
-    print_info "配置环境变量..."
-    
-    if [ ! -f ".env" ]; then
-        print_warning ".env 文件不存在，正在创建..."
-        
-        read -p "请输入币安 API Key: " API_KEY
-        read -sp "请输入币安 API Secret: " API_SECRET
-        echo
-        
-        cat > .env << EOF
-BINANCE_API_KEY=${API_KEY}
-BINANCE_API_SECRET=${API_SECRET}
-PORT=3000
-EOF
-        
-        chmod 600 .env
-        print_success "环境变量配置完成"
-    else
-        print_info ".env 文件已存在，跳过配置"
-        print_warning "如需更新环境变量，请编辑 $PROJECT_DIR/.env 文件"
-    fi
+# 配置说明
+setup_info() {
+    print_info "配置说明..."
+    print_warning "⚠️  注意：API Key 和 Secret 需要在网页上配置"
+    print_info "启动后访问 http://$(hostname -I | awk '{print $1}'):3031"
+    print_info "点击右上角'设置'按钮配置 API Key 和 Secret"
 }
 
 # 拉取镜像并启动服务
@@ -166,8 +149,8 @@ start_service() {
     # 检查服务状态
     if docker-compose ps | grep -q "Up"; then
         print_success "服务启动成功！"
-        print_info "访问地址: http://$(hostname -I | awk '{print $1}'):3000"
-        print_info "或访问: http://localhost:3000"
+        print_info "访问地址: http://$(hostname -I | awk '{print $1}'):3031"
+        print_info "或访问: http://localhost:3031"
     else
         print_error "服务启动失败，请检查日志: docker-compose logs"
         exit 1
@@ -182,7 +165,8 @@ show_info() {
     print_success "=========================================="
     echo
     print_info "项目目录: $PROJECT_DIR"
-    print_info "访问地址: http://$(hostname -I | awk '{print $1}'):3000"
+    print_info "访问地址: http://$(hostname -I | awk '{print $1}'):3031"
+    print_warning "⚠️  首次使用请在网页上配置 API Key 和 Secret"
     echo
     print_info "常用命令:"
     echo "  查看日志: docker-compose logs -f"
@@ -205,7 +189,7 @@ main() {
     check_docker
     create_project_dir
     download_project
-    setup_env
+    setup_info
     start_service
     show_info
 }

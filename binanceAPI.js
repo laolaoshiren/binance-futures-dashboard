@@ -1,12 +1,9 @@
 const axios = require('axios');
 const crypto = require('crypto');
-require('dotenv').config();
 
-const API_KEY = process.env.BINANCE_API_KEY;
-const API_SECRET = process.env.BINANCE_API_SECRET;
 const BASE_URL = 'https://fapi.binance.com';
 
-// 服务器时间偏移量
+// 服务器时间偏移量（全局）
 let timeOffset = 0;
 
 // 获取服务器时间并计算偏移量
@@ -28,9 +25,9 @@ function getSyncedTimestamp() {
 }
 
 // 生成签名
-function generateSignature(queryString) {
+function generateSignature(queryString, apiSecret) {
   return crypto
-    .createHmac('sha256', API_SECRET)
+    .createHmac('sha256', apiSecret)
     .update(queryString)
     .digest('hex');
 }
@@ -41,15 +38,19 @@ syncServerTime();
 setInterval(syncServerTime, 3600000);
 
 // 获取账户信息
-async function getAccountInfo() {
+async function getAccountInfo(apiKey, apiSecret) {
+  if (!apiKey || !apiSecret) {
+    throw new Error('API Key 和 Secret 不能为空');
+  }
+  
   try {
     const timestamp = getSyncedTimestamp();
     const queryString = `timestamp=${timestamp}`;
-    const signature = generateSignature(queryString);
+    const signature = generateSignature(queryString, apiSecret);
     
     const response = await axios.get(`${BASE_URL}/fapi/v2/account`, {
       headers: {
-        'X-MBX-APIKEY': API_KEY
+        'X-MBX-APIKEY': apiKey
       },
       params: {
         timestamp,
@@ -65,15 +66,19 @@ async function getAccountInfo() {
 }
 
 // 获取持仓信息
-async function getPositions() {
+async function getPositions(apiKey, apiSecret) {
+  if (!apiKey || !apiSecret) {
+    throw new Error('API Key 和 Secret 不能为空');
+  }
+  
   try {
     const timestamp = getSyncedTimestamp();
     const queryString = `timestamp=${timestamp}`;
-    const signature = generateSignature(queryString);
+    const signature = generateSignature(queryString, apiSecret);
     
     const response = await axios.get(`${BASE_URL}/fapi/v2/positionRisk`, {
       headers: {
-        'X-MBX-APIKEY': API_KEY
+        'X-MBX-APIKEY': apiKey
       },
       params: {
         timestamp,
@@ -90,14 +95,18 @@ async function getPositions() {
 }
 
 // 获取交易历史
-async function getTradeHistory(symbol = '', limit = 50) {
+async function getTradeHistory(apiKey, apiSecret, symbol = '', limit = 50) {
+  if (!apiKey || !apiSecret) {
+    throw new Error('API Key 和 Secret 不能为空');
+  }
+  
   try {
     const timestamp = getSyncedTimestamp();
     let queryString = `timestamp=${timestamp}&limit=${limit}`;
     if (symbol) {
       queryString = `symbol=${symbol}&${queryString}`;
     }
-    const signature = generateSignature(queryString);
+    const signature = generateSignature(queryString, apiSecret);
     
     const params = {
       timestamp,
@@ -111,7 +120,7 @@ async function getTradeHistory(symbol = '', limit = 50) {
     
     const response = await axios.get(`${BASE_URL}/fapi/v1/userTrades`, {
       headers: {
-        'X-MBX-APIKEY': API_KEY
+        'X-MBX-APIKEY': apiKey
       },
       params
     });
@@ -124,14 +133,18 @@ async function getTradeHistory(symbol = '', limit = 50) {
 }
 
 // 获取订单历史
-async function getOrderHistory(symbol = '', limit = 50) {
+async function getOrderHistory(apiKey, apiSecret, symbol = '', limit = 50) {
+  if (!apiKey || !apiSecret) {
+    throw new Error('API Key 和 Secret 不能为空');
+  }
+  
   try {
     const timestamp = getSyncedTimestamp();
     let queryString = `timestamp=${timestamp}&limit=${limit}`;
     if (symbol) {
       queryString = `symbol=${symbol}&${queryString}`;
     }
-    const signature = generateSignature(queryString);
+    const signature = generateSignature(queryString, apiSecret);
     
     const params = {
       timestamp,
@@ -145,7 +158,7 @@ async function getOrderHistory(symbol = '', limit = 50) {
     
     const response = await axios.get(`${BASE_URL}/fapi/v1/allOrders`, {
       headers: {
-        'X-MBX-APIKEY': API_KEY
+        'X-MBX-APIKEY': apiKey
       },
       params
     });
@@ -158,15 +171,19 @@ async function getOrderHistory(symbol = '', limit = 50) {
 }
 
 // 获取收益历史
-async function getIncomeHistory(limit = 100) {
+async function getIncomeHistory(apiKey, apiSecret, limit = 100) {
+  if (!apiKey || !apiSecret) {
+    throw new Error('API Key 和 Secret 不能为空');
+  }
+  
   try {
     const timestamp = getSyncedTimestamp();
     const queryString = `timestamp=${timestamp}&limit=${limit}`;
-    const signature = generateSignature(queryString);
+    const signature = generateSignature(queryString, apiSecret);
     
     const response = await axios.get(`${BASE_URL}/fapi/v1/income`, {
       headers: {
-        'X-MBX-APIKEY': API_KEY
+        'X-MBX-APIKEY': apiKey
       },
       params: {
         timestamp,

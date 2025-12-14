@@ -1,6 +1,176 @@
 // 当前活动标签
 let currentTab = 'positions';
 let currentTimeRange = 1; // 默认1天
+let apiConfigured = false; // API 配置状态
+
+// API 配置相关函数
+async function checkApiStatus() {
+  try {
+    const response = await fetch('/api/config/status');
+    const data = await response.json();
+    apiConfigured = data.configured;
+    return apiConfigured;
+  } catch (error) {
+    console.error('检查 API 状态失败:', error);
+    return false;
+  }
+}
+
+function openSettings() {
+  document.getElementById('settingsModal').style.display = 'flex';
+  checkApiStatus().then(configured => {
+    if (configured) {
+      showConfigStatus('API 已配置', 'success');
+    }
+  });
+}
+
+function closeSettings() {
+  document.getElementById('settingsModal').style.display = 'none';
+  document.getElementById('configStatus').style.display = 'none';
+  document.getElementById('configStatus').className = 'config-status';
+}
+
+async function saveApiConfig() {
+  const apiKey = document.getElementById('apiKey').value.trim();
+  const apiSecret = document.getElementById('apiSecret').value.trim();
+  
+  if (!apiKey || !apiSecret) {
+    showConfigStatus('请填写完整的 API Key 和 Secret', 'error');
+    return;
+  }
+  
+  try {
+    const response = await fetch('/api/config', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ apiKey, apiSecret })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      showConfigStatus('API 配置已保存！', 'success');
+      apiConfigured = true;
+      // 清空输入框
+      document.getElementById('apiKey').value = '';
+      document.getElementById('apiSecret').value = '';
+      // 延迟关闭并刷新数据
+      setTimeout(() => {
+        closeSettings();
+        refreshData();
+      }, 1500);
+    } else {
+      showConfigStatus(data.error || '保存失败', 'error');
+    }
+  } catch (error) {
+    showConfigStatus('保存失败: ' + error.message, 'error');
+  }
+}
+
+async function clearApiConfig() {
+  if (!confirm('确定要清除 API 配置吗？')) {
+    return;
+  }
+  
+  try {
+    const response = await fetch('/api/config/clear', {
+      method: 'POST'
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      showConfigStatus('API 配置已清除', 'success');
+      apiConfigured = false;
+      document.getElementById('apiKey').value = '';
+      document.getElementById('apiSecret').value = '';
+      // 清空显示的数据
+      setTimeout(() => {
+        location.reload();
+      }, 1000);
+    } else {
+      showConfigStatus('清除失败', 'error');
+    }
+  } catch (error) {
+    showConfigStatus('清除失败: ' + error.message, 'error');
+  }
+}
+
+async function testApiConfig() {
+  const apiKey = document.getElementById('apiKey').value.trim();
+  const apiSecret = document.getElementById('apiSecret').value.trim();
+  
+  if (!apiKey || !apiSecret) {
+    showConfigStatus('请先填写 API Key 和 Secret', 'error');
+    return;
+  }
+  
+  showConfigStatus('正在测试连接...', 'success');
+  
+  try {
+    // 先保存配置
+    const saveResponse = await fetch('/api/config', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ apiKey, apiSecret })
+    });
+    
+    const saveData = await saveResponse.json();
+    
+    if (!saveData.success) {
+      showConfigStatus('保存配置失败: ' + (saveData.error || '未知错误'), 'error');
+      return;
+    }
+    
+    // 测试连接
+    const testResponse = await fetch('/api/account');
+    const testData = await testResponse.json();
+    
+    if (testData.success) {
+      showConfigStatus('✅ 连接成功！API 配置正确', 'success');
+      apiConfigured = true;
+    } else {
+      showConfigStatus('❌ 连接失败: ' + (testData.error || 'API 密钥可能无效'), 'error');
+    }
+  } catch (error) {
+    showConfigStatus('测试失败: ' + error.message, 'error');
+  }
+}
+
+function showConfigStatus(message, type) {
+  const statusEl = document.getElementById('configStatus');
+  statusEl.textContent = message;
+  statusEl.className = `config-status ${type}`;
+  statusEl.style.display = 'block';
+}
+
+// 检查 API 配置的包装函数
+async async function fetchWithApiCheck(url, options = {}) {
+  if (!apiConfigured) {
+    const configured = await checkApiStatus();
+    if (!configured) {
+      throw new Error('API_NOT_CONFIGURED');
+    }
+    apiConfigured = true;
+  }
+  
+  const response = await fetch(url, options);
+  
+  if (response.status === 401) {
+    apiConfigured = false;
+    const data = await response.json();
+    if (data.error && data.error.includes('API 配置未设置')) {
+      throw new Error('API_NOT_CONFIGURED');
+    }
+  }
+  
+  return response;
+}
 
 // 分页状态
 const paginationState = {
@@ -209,7 +379,8 @@ function formatTime(timestamp) {
 // 加载账户信息
 async function loadAccountInfo() {
   try {
-    const response = await fetch('/api/account');
+    const response = await fetchWithApiCheck('/api/account');
+    if (!response) return; // API 未配置时返回
     const result = await response.json();
     
     if (result.success) {
@@ -235,7 +406,8 @@ async function loadAccountInfo() {
 // 加载持仓信息
 async function loadPositions() {
   try {
-    const response = await fetch('/api/positions');
+    const response = await fetchWithApiCheck('/api/positions');
+    if (!response) return; // API 未配置时返回
     const result = await response.json();
     
     const contentDiv = document.getElementById('positionsContent');
@@ -279,6 +451,11 @@ async function loadPositions() {
       contentDiv.innerHTML = `<div class="error">加载失败: ${result.error.msg || result.error}</div>`;
     }
   } catch (error) {
+    if (error.message === 'API_NOT_CONFIGURED') {
+      document.getElementById('positionsContent').innerHTML = 
+        `<div class="error">⚠️ API 未配置，请点击右上角"设置"按钮配置 API Key 和 Secret</div>`;
+      return;
+    }
     console.error('加载持仓信息失败:', error);
     document.getElementById('positionsContent').innerHTML = 
       `<div class="error">加载失败: ${error.message}</div>`;
@@ -404,7 +581,7 @@ function formatDuration(ms) {
 // 加载统计数据
 async function loadStatistics() {
   try {
-    const response = await fetch('/api/trades?limit=1000');
+    const response = await fetchWithApiCheck('/api/trades?limit=1000');
     const result = await response.json();
     
     const contentDiv = document.getElementById('statisticsContent');
@@ -589,7 +766,7 @@ async function loadStatistics() {
 // 加载交易历史
 async function loadTrades() {
   try {
-    const response = await fetch('/api/trades?limit=1000');
+    const response = await fetchWithApiCheck('/api/trades?limit=1000');
     const result = await response.json();
     
     const contentDiv = document.getElementById('tradesContent');
@@ -671,7 +848,7 @@ async function loadTrades() {
 // 加载订单历史
 async function loadOrders() {
   try {
-    const response = await fetch('/api/orders?limit=500');
+    const response = await fetchWithApiCheck('/api/orders?limit=500');
     const result = await response.json();
     
     const contentDiv = document.getElementById('ordersContent');
@@ -749,7 +926,7 @@ async function loadOrders() {
 // 加载收益记录
 async function loadIncome() {
   try {
-    const response = await fetch('/api/income?limit=500');
+    const response = await fetchWithApiCheck('/api/income?limit=500');
     const result = await response.json();
     
     const contentDiv = document.getElementById('incomeContent');
@@ -882,7 +1059,7 @@ function changePageSize(tabName, size) {
 // 加载盈亏日历
 async function loadCalendar() {
   try {
-    const response = await fetch('/api/income?limit=1000');
+    const response = await fetchWithApiCheck('/api/income?limit=1000');
     const result = await response.json();
     
     const contentDiv = document.getElementById('calendarContent');
@@ -1075,13 +1252,24 @@ async function refreshData() {
 }
 
 // 初始化
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
   // 加载持久化状态
   loadPersistedState();
   
-  loadAccountInfo();
-  loadPositions();
-  
-  // 每30秒自动刷新
-  setInterval(refreshData, 30000);
+  // 检查 API 配置状态
+  const configured = await checkApiStatus();
+  if (!configured) {
+    // 显示提示并打开设置
+    setTimeout(() => {
+      alert('⚠️ 请先配置 API Key 和 Secret 才能使用系统功能');
+      openSettings();
+    }, 500);
+  } else {
+    // API 已配置，加载数据
+    loadAccountInfo();
+    loadPositions();
+    
+    // 每30秒自动刷新
+    setInterval(refreshData, 30000);
+  }
 });

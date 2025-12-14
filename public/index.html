@@ -69,6 +69,222 @@
       color: #a0a0b0;
     }
 
+    .settings-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+      color: white;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+      transition: all 0.3s ease;
+    }
+
+    .settings-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6);
+    }
+
+    /* 模态框样式 */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+      backdrop-filter: blur(5px);
+    }
+
+    .modal-content {
+      background: linear-gradient(145deg, #1e1e2e, #2a2a3e);
+      border-radius: 15px;
+      padding: 0;
+      max-width: 500px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255,255,255,0.08);
+      animation: fadeInUp 0.3s ease-out;
+    }
+
+    .modal-header {
+      padding: 25px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h2 {
+      color: #8b5cf6;
+      margin: 0;
+      font-size: 1.5rem;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: #a0a0b0;
+      font-size: 2rem;
+      cursor: pointer;
+      padding: 0;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+    }
+
+    .modal-close:hover {
+      background: rgba(255,255,255,0.1);
+      color: #ef4444;
+      transform: rotate(90deg);
+    }
+
+    .modal-body {
+      padding: 25px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      color: #a0a0b0;
+      margin-bottom: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px 15px;
+      background: linear-gradient(145deg, #2a2a3e, #1e1e2e);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      color: #e0e0e0;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: rgba(139, 92, 246, 0.5);
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 25px;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary, .btn-secondary {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      flex: 1;
+      min-width: 120px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(145deg, #2a2a3e, #1e1e2e);
+      color: #a0a0b0;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .btn-secondary:hover {
+      border-color: rgba(139, 92, 246, 0.5);
+      color: #8b5cf6;
+    }
+
+    .config-status {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      display: none;
+    }
+
+    .config-status.success {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #10b981;
+      display: block;
+    }
+
+    .config-status.error {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+      display: block;
+    }
+
+    .form-tips {
+      margin-top: 25px;
+      padding: 15px;
+      background: rgba(139, 92, 246, 0.05);
+      border-radius: 8px;
+      border: 1px solid rgba(139, 92, 246, 0.2);
+    }
+
+    .form-tips p {
+      color: #8b5cf6;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .form-tips ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .form-tips li {
+      color: #a0a0b0;
+      font-size: 0.85rem;
+      margin-bottom: 5px;
+      padding-left: 20px;
+      position: relative;
+    }
+
+    .form-tips li:before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: #8b5cf6;
+    }
+
     @keyframes gradientFlow {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
@@ -626,6 +842,41 @@
     <div class="header">
       <h1>📊 币安合约记录展示</h1>
       <p>实时监控您的合约交易数据</p>
+      <button class="settings-btn" onclick="openSettings()" title="API 设置">⚙️ 设置</button>
+    </div>
+
+    <!-- API 配置模态框 -->
+    <div id="settingsModal" class="modal" style="display: none;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>🔐 API 配置</h2>
+          <button class="modal-close" onclick="closeSettings()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="apiKey">API Key:</label>
+            <input type="text" id="apiKey" placeholder="请输入币安 API Key" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="apiSecret">API Secret:</label>
+            <input type="password" id="apiSecret" placeholder="请输入币安 API Secret" autocomplete="off">
+          </div>
+          <div class="form-actions">
+            <button class="btn-primary" onclick="saveApiConfig()">保存配置</button>
+            <button class="btn-secondary" onclick="clearApiConfig()">清除配置</button>
+            <button class="btn-secondary" onclick="testApiConfig()">测试连接</button>
+          </div>
+          <div id="configStatus" class="config-status"></div>
+          <div class="form-tips">
+            <p>💡 提示：</p>
+            <ul>
+              <li>API 密钥仅存储在浏览器会话中，不会保存到服务器</li>
+              <li>建议只授予 API "读取"权限，不要授予交易权限</li>
+              <li>配置后刷新页面即可使用</li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- 时间范围选择器 - 移到最外层 -->
