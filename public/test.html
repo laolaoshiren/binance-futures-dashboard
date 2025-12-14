@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>表头固定测试</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+      background-attachment: fixed;
+      padding: 20px;
+      color: #e0e0e0;
+      min-height: 200vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      color: #8b5cf6;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .info {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+      overflow-y: visible;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: #1a1a2e;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    thead {
+      background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+      color: white;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    th {
+      padding: 15px 10px;
+      text-align: center;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+      background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+      border-bottom: 2px solid rgba(139, 92, 246, 0.5);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+
+    td {
+      padding: 15px 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      text-align: center;
+      color: #d0d0d0;
+    }
+
+    tbody tr:nth-child(even) {
+      background: rgba(42, 42, 62, 0.3);
+    }
+
+    tbody tr:hover {
+      background-color: rgba(139, 92, 246, 0.1);
+    }
+
+    .scroll-indicator {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #8b5cf6;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 25px;
+      font-weight: bold;
+      box-shadow: 0 4px 15px rgba(139, 92, 246, 0.5);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧪 表头固定测试页面</h1>
+    
+    <div class="info">
+      <h2>测试说明</h2>
+      <p>请向下滚动页面，观察表头是否固定在浏览器窗口顶部</p>
+      <p>✅ 如果表头始终可见 = 功能正常</p>
+      <p>❌ 如果表头跟随页面滚动消失 = 功能异常</p>
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>序号</th>
+            <th>交易对</th>
+            <th>价格</th>
+            <th>数量</th>
+            <th>金额</th>
+            <th>时间</th>
+            <th>状态</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <!-- 将通过 JS 生成 100 行数据 -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="scroll-indicator" id="scrollIndicator">
+    滚动位置: 0px
+  </div>
+
+  <script>
+    // 生成测试数据
+    const tbody = document.getElementById('tableBody');
+    const symbols = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'ADAUSDT'];
+    
+    for (let i = 1; i <= 100; i++) {
+      const row = document.createElement('tr');
+      const symbol = symbols[i % symbols.length];
+      const price = (Math.random() * 50000 + 10000).toFixed(2);
+      const qty = (Math.random() * 10).toFixed(4);
+      const amount = (price * qty).toFixed(2);
+      
+      row.innerHTML = `
+        <td>${i}</td>
+        <td>${symbol}</td>
+        <td>$${price}</td>
+        <td>${qty}</td>
+        <td>$${amount}</td>
+        <td>${new Date().toLocaleTimeString()}</td>
+        <td><span style="color: ${i % 2 === 0 ? '#10b981' : '#ef4444'};">${i % 2 === 0 ? '✓ 成功' : '⊗ 失败'}</span></td>
+      `;
+      tbody.appendChild(row);
+    }
+
+    // 监听滚动位置
+    window.addEventListener('scroll', () => {
+      const scrollY = Math.round(window.scrollY);
+      document.getElementById('scrollIndicator').textContent = `滚动位置: ${scrollY}px`;
+      
+      // 高亮表头以便观察
+      const thead = document.querySelector('thead');
+      if (scrollY > 100) {
+        thead.style.boxShadow = '0 4px 20px rgba(139, 92, 246, 0.8)';
+      } else {
+        thead.style.boxShadow = '0 2px 10px rgba(0,0,0,0.5)';
+      }
+    });
+  </script>
+</body>
+</html>
