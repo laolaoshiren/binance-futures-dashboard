@@ -225,29 +225,76 @@ setup_info() {
     print_info "点击右上角'设置'按钮配置 API Key 和 Secret"
 }
 
-# 检查端口占用
+# 检查端口占用并自动处理
 check_port() {
     PORT=3031
-    if command -v netstat &> /dev/null; then
-        if netstat -tuln 2>/dev/null | grep -q ":$PORT "; then
-            print_warning "端口 $PORT 已被占用，尝试停止现有容器..."
-            docker-compose down 2>/dev/null || true
-            # 检查是否还有其他进程占用
-            if netstat -tuln 2>/dev/null | grep -q ":$PORT "; then
-                print_error "端口 $PORT 仍被占用，请手动停止占用该端口的服务"
-                print_info "可以使用命令查看: netstat -tuln | grep $PORT"
-                exit 1
+    
+    # 检查端口是否被占用的函数
+    is_port_in_use() {
+        if command -v netstat &> /dev/null; then
+            netstat -tuln 2>/dev/null | grep -q ":$PORT "
+        elif command -v ss &> /dev/null; then
+            ss -tuln 2>/dev/null | grep -q ":$PORT "
+        else
+            # 使用 lsof 作为备选
+            if command -v lsof &> /dev/null; then
+                lsof -i :$PORT &>/dev/null
+            else
+                false
             fi
         fi
-    elif command -v ss &> /dev/null; then
-        if ss -tuln 2>/dev/null | grep -q ":$PORT "; then
-            print_warning "端口 $PORT 已被占用，尝试停止现有容器..."
+    }
+    
+    if is_port_in_use; then
+        print_warning "端口 $PORT 已被占用，正在自动处理..."
+        
+        # 1. 尝试停止当前目录的 docker-compose 容器
+        if [ -f "docker-compose.yml" ]; then
+            print_info "停止现有 Docker Compose 容器..."
             docker-compose down 2>/dev/null || true
-            if ss -tuln 2>/dev/null | grep -q ":$PORT "; then
-                print_error "端口 $PORT 仍被占用，请手动停止占用该端口的服务"
-                print_info "可以使用命令查看: ss -tuln | grep $PORT"
-                exit 1
+            sleep 2
+        fi
+        
+        # 2. 查找并停止占用该端口的 Docker 容器
+        CONTAINER_ID=$(docker ps --format "{{.ID}}\t{{.Ports}}" 2>/dev/null | grep ":$PORT" | awk '{print $1}' | head -1)
+        if [ -n "$CONTAINER_ID" ]; then
+            print_info "发现占用端口的容器 $CONTAINER_ID，正在停止..."
+            docker stop "$CONTAINER_ID" 2>/dev/null || true
+            docker rm "$CONTAINER_ID" 2>/dev/null || true
+            sleep 2
+        fi
+        
+        # 3. 如果端口仍被占用，尝试查找进程并停止
+        if is_port_in_use; then
+            print_info "查找占用端口的进程..."
+            if command -v lsof &> /dev/null; then
+                PID=$(lsof -ti :$PORT 2>/dev/null | head -1)
+                if [ -n "$PID" ]; then
+                    print_warning "发现进程 $PID 占用端口，正在停止..."
+                    kill -9 "$PID" 2>/dev/null || true
+                    sleep 2
+                fi
+            elif command -v fuser &> /dev/null; then
+                print_warning "使用 fuser 停止占用端口的进程..."
+                fuser -k $PORT/tcp 2>/dev/null || true
+                sleep 2
             fi
+        fi
+        
+        # 4. 最后检查端口是否已释放
+        if is_port_in_use; then
+            print_error "无法自动释放端口 $PORT，请手动处理"
+            print_info "可以使用以下命令查看占用端口的进程:"
+            if command -v lsof &> /dev/null; then
+                print_info "  lsof -i :$PORT"
+            elif command -v netstat &> /dev/null; then
+                print_info "  netstat -tuln | grep $PORT"
+            elif command -v ss &> /dev/null; then
+                print_info "  ss -tuln | grep $PORT"
+            fi
+            exit 1
+        else
+            print_success "端口 $PORT 已成功释放"
         fi
     fi
 }
