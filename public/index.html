@@ -842,7 +842,7 @@
     <div class="header">
       <h1>📊 币安合约记录展示</h1>
       <p>实时监控您的合约交易数据</p>
-      <button class="settings-btn" onclick="if(typeof window.openSettings === 'function') { window.openSettings(); } else if(typeof openSettings === 'function') { openSettings(); } else { console.error('openSettings 函数未定义'); }" title="API 设置">⚙️ 设置</button>
+      <button class="settings-btn" id="settingsBtn" onclick="(function(){ if(typeof window.openSettings === 'function') { window.openSettings(); } else { console.error('openSettings 函数未定义，请刷新页面重试'); } })()" title="API 设置">⚙️ 设置</button>
     </div>
 
     <!-- API 配置模态框 -->

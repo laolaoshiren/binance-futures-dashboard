@@ -404,6 +404,34 @@ stop_existing_containers() {
     fi
 }
 
+# 强制更新项目文件（确保使用最新代码）
+force_update_files() {
+    print_info "强制更新项目文件到最新版本..."
+    
+    GITHUB_BRANCH="main"
+    
+    # 如果使用 git，直接拉取最新代码
+    if [ -d ".git" ] && command -v git &> /dev/null; then
+        print_info "使用 git 更新代码..."
+        git pull origin "$GITHUB_BRANCH" || true
+    else
+        # 强制更新关键文件
+        print_info "更新关键文件..."
+        curl -fsSL "https://raw.githubusercontent.com/laolaoshiren/binance-futures-dashboard/$GITHUB_BRANCH/docker-compose.yml" -o docker-compose.yml 2>/dev/null || true
+        curl -fsSL "https://raw.githubusercontent.com/laolaoshiren/binance-futures-dashboard/$GITHUB_BRANCH/public/app.js" -o public/app.js 2>/dev/null || true
+        curl -fsSL "https://raw.githubusercontent.com/laolaoshiren/binance-futures-dashboard/$GITHUB_BRANCH/public/index.html" -o public/index.html 2>/dev/null || true
+        curl -fsSL "https://raw.githubusercontent.com/laolaoshiren/binance-futures-dashboard/$GITHUB_BRANCH/server.js" -o server.js 2>/dev/null || true
+        curl -fsSL "https://raw.githubusercontent.com/laolaoshiren/binance-futures-dashboard/$GITHUB_BRANCH/binanceAPI.js" -o binanceAPI.js 2>/dev/null || true
+    fi
+    
+    # 检查并移除 docker-compose.yml 中的废弃 version 字段
+    if [ -f "docker-compose.yml" ] && grep -q "^version:" docker-compose.yml 2>/dev/null; then
+        print_info "移除 docker-compose.yml 中的废弃 version 字段..."
+        sed -i '/^version:/d' docker-compose.yml
+        sed -i '/^$/N;/^\n$/d' docker-compose.yml
+    fi
+}
+
 # 拉取镜像并启动服务
 start_service() {
     # 先停止本地开发服务器
@@ -415,8 +443,11 @@ start_service() {
     # 检查端口占用
     check_port
     
+    # 强制更新文件到最新版本
+    force_update_files
+    
     print_info "构建 Docker 镜像..."
-    docker-compose build || {
+    docker-compose build --no-cache || {
         print_warning "构建失败，尝试拉取镜像..."
         docker-compose pull || true
     }
