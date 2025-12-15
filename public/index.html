@@ -842,7 +842,7 @@
     <div class="header">
       <h1>📊 币安合约记录展示</h1>
       <p>实时监控您的合约交易数据</p>
-      <button class="settings-btn" onclick="openSettings()" title="API 设置">⚙️ 设置</button>
+      <button class="settings-btn" onclick="if(typeof window.openSettings === 'function') { window.openSettings(); } else if(typeof openSettings === 'function') { openSettings(); } else { console.error('openSettings 函数未定义'); }" title="API 设置">⚙️ 设置</button>
     </div>
 
     <!-- API 配置模态框 -->
@@ -862,9 +862,9 @@
             <input type="password" id="apiSecret" placeholder="请输入币安 API Secret" autocomplete="off">
           </div>
           <div class="form-actions">
-            <button class="btn-primary" onclick="saveApiConfig()">保存配置</button>
-            <button class="btn-secondary" onclick="clearApiConfig()">清除配置</button>
-            <button class="btn-secondary" onclick="testApiConfig()">测试连接</button>
+            <button class="btn-primary" onclick="if(typeof window.saveApiConfig === 'function') { window.saveApiConfig(); } else if(typeof saveApiConfig === 'function') { saveApiConfig(); }">保存配置</button>
+            <button class="btn-secondary" onclick="if(typeof window.clearApiConfig === 'function') { window.clearApiConfig(); } else if(typeof clearApiConfig === 'function') { clearApiConfig(); }">清除配置</button>
+            <button class="btn-secondary" onclick="if(typeof window.testApiConfig === 'function') { window.testApiConfig(); } else if(typeof testApiConfig === 'function') { testApiConfig(); }">测试连接</button>
           </div>
           <div id="configStatus" class="config-status"></div>
           <div class="form-tips">
