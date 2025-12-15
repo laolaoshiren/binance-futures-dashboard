@@ -309,16 +309,19 @@ async function changeTimeRange(days, event) {
   hideLoading();
 }
 
-// 过滤时间范围内的数据
+// 时区偏移（UTC+8）
+const TZ_OFFSET_MS = 8 * 60 * 60 * 1000;
+
+// 过滤时间范围内的数据（按 UTC+8 计算）
 function filterByTimeRange(data, timeField = 'time') {
   if (currentTimeRange === 0) return data; // 全部数据
   
-  const now = Date.now();
+  const now = Date.now() + TZ_OFFSET_MS;
   const rangeMs = currentTimeRange * 24 * 60 * 60 * 1000;
   const startTime = now - rangeMs;
   
   return data.filter(item => {
-    const itemTime = item[timeField] || item.time || item.updateTime || item.timestamp;
+    const itemTime = (item[timeField] || item.time || item.updateTime || item.timestamp || 0) + TZ_OFFSET_MS;
     return itemTime >= startTime;
   });
 }
@@ -375,10 +378,11 @@ function formatNumber(num, decimals = 2) {
   return parseFloat(num).toFixed(decimals);
 }
 
-// 格式化时间
+// 格式化时间（统一使用 UTC+8）
 function formatTime(timestamp) {
   const date = new Date(timestamp);
   return date.toLocaleString('zh-CN', {
+    timeZone: 'Asia/Shanghai',
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -1084,15 +1088,15 @@ async function loadCalendar() {
         return;
       }
       
-      // 按天统计盈亏
+      // 按天统计盈亏（统一按 UTC+8 分桶）
       const dailyStats = {};
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      const today = new Date(Date.now() + TZ_OFFSET_MS);
+      today.setUTCHours(0, 0, 0, 0);
       
       // 初始化最近30天
       for (let i = 29; i >= 0; i--) {
         const date = new Date(today);
-        date.setDate(date.getDate() - i);
+        date.setUTCDate(date.getUTCDate() - i);
         const dateStr = date.toISOString().split('T')[0];
         dailyStats[dateStr] = {
           date: new Date(date),
@@ -1106,8 +1110,9 @@ async function loadCalendar() {
       
       // 统计每天的数据
       incomes.forEach(income => {
-        const incomeDate = new Date(income.time);
-        incomeDate.setHours(0, 0, 0, 0);
+        // 将时间转为 UTC+8 再分桶
+        const incomeDate = new Date((income.time || 0) + TZ_OFFSET_MS);
+        incomeDate.setUTCHours(0, 0, 0, 0);
         const dateStr = incomeDate.toISOString().split('T')[0];
         
         if (dailyStats[dateStr]) {
