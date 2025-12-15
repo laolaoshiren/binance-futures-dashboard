@@ -150,7 +150,7 @@ function showConfigStatus(message, type) {
 }
 
 // 检查 API 配置的包装函数
-async async function fetchWithApiCheck(url, options = {}) {
+async function fetchWithApiCheck(url, options = {}) {
   if (!apiConfigured) {
     const configured = await checkApiStatus();
     if (!configured) {
