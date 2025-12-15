@@ -255,12 +255,34 @@ check_port() {
             sleep 2
         fi
         
-        # 2. 查找并停止占用该端口的 Docker 容器
+        # 2. 查找并停止占用该端口的 Docker 容器（包括已停止的）
+        # 查找运行中的容器
         CONTAINER_ID=$(docker ps --format "{{.ID}}\t{{.Ports}}" 2>/dev/null | grep ":$PORT" | awk '{print $1}' | head -1)
         if [ -n "$CONTAINER_ID" ]; then
-            print_info "发现占用端口的容器 $CONTAINER_ID，正在停止..."
+            print_info "发现运行中的容器 $CONTAINER_ID 占用端口，正在停止..."
             docker stop "$CONTAINER_ID" 2>/dev/null || true
             docker rm "$CONTAINER_ID" 2>/dev/null || true
+            sleep 2
+        fi
+        
+        # 查找所有容器（包括已停止的）中占用该端口的
+        ALL_CONTAINERS=$(docker ps -a --format "{{.ID}}\t{{.Names}}" 2>/dev/null)
+        for container in $(echo "$ALL_CONTAINERS" | awk '{print $1}'); do
+            container_name=$(echo "$ALL_CONTAINERS" | grep "^$container" | awk '{print $2}')
+            # 检查容器的端口映射
+            if docker port "$container" 2>/dev/null | grep -q ":$PORT"; then
+                print_info "发现容器 $container ($container_name) 占用端口，正在停止并删除..."
+                docker stop "$container" 2>/dev/null || true
+                docker rm "$container" 2>/dev/null || true
+                sleep 1
+            fi
+        done
+        
+        # 特别处理 binance-futures-viewer 容器
+        if docker ps -a --format "{{.Names}}" 2>/dev/null | grep -q "binance-futures-viewer"; then
+            print_info "发现 binance-futures-viewer 容器，正在停止并删除..."
+            docker stop binance-futures-viewer 2>/dev/null || true
+            docker rm binance-futures-viewer 2>/dev/null || true
             sleep 2
         fi
         
