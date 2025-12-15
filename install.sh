@@ -144,15 +144,8 @@ download_project() {
     GITHUB_REPO="https://github.com/laolaoshiren/binance-futures-dashboard.git"
     GITHUB_BRANCH="main"
     
-    # 如果项目目录不为空且已有 docker-compose.yml，跳过下载
-    if [ -f "docker-compose.yml" ]; then
-        print_info "项目文件已存在，跳过下载"
-        return 0
-    fi
-    
     # 检查是否安装了 git
     if command -v git &> /dev/null; then
-        print_info "使用 git 克隆项目..."
         if [ -d ".git" ]; then
             print_info "检测到 git 仓库，更新代码..."
             git pull origin "$GITHUB_BRANCH" || {
@@ -164,45 +157,67 @@ download_project() {
                 git clone -b "$GITHUB_BRANCH" "$GITHUB_REPO" .
             }
         else
+            print_info "使用 git 克隆项目..."
             git clone -b "$GITHUB_BRANCH" "$GITHUB_REPO" .
         fi
     else
         print_warning "未安装 git，尝试直接下载必要文件..."
         
-        # 下载必要的文件
-        print_info "下载 docker-compose.yml..."
+        # 即使文件已存在，也强制更新关键文件（特别是 docker-compose.yml）
+        print_info "更新 docker-compose.yml..."
         curl -fsSL "https://raw.githubusercontent.com/laolaoshiren/binance-futures-dashboard/$GITHUB_BRANCH/docker-compose.yml" -o docker-compose.yml || {
             print_error "下载 docker-compose.yml 失败"
             exit 1
         }
         
-        print_info "下载 Dockerfile..."
-        curl -fsSL "https://raw.githubusercontent.com/laolaoshiren/binance-futures-dashboard/$GITHUB_BRANCH/Dockerfile" -o Dockerfile || {
-            print_error "下载 Dockerfile 失败"
-            exit 1
-        }
+        # 如果其他文件不存在，则下载
+        if [ ! -f "Dockerfile" ]; then
+            print_info "下载 Dockerfile..."
+            curl -fsSL "https://raw.githubusercontent.com/laolaoshiren/binance-futures-dashboard/$GITHUB_BRANCH/Dockerfile" -o Dockerfile || {
+                print_error "下载 Dockerfile 失败"
+                exit 1
+            }
+        fi
         
-        print_info "下载 package.json..."
-        curl -fsSL "https://raw.githubusercontent.com/laolaoshiren/binance-futures-dashboard/$GITHUB_BRANCH/package.json" -o package.json || {
-            print_error "下载 package.json 失败"
-            exit 1
-        }
+        if [ ! -f "package.json" ]; then
+            print_info "下载 package.json..."
+            curl -fsSL "https://raw.githubusercontent.com/laolaoshiren/binance-futures-dashboard/$GITHUB_BRANCH/package.json" -o package.json || {
+                print_error "下载 package.json 失败"
+                exit 1
+            }
+        fi
         
         # 创建必要的目录和文件
         mkdir -p public
-        print_info "下载前端文件..."
-        curl -fsSL "https://raw.githubusercontent.com/laolaoshiren/binance-futures-dashboard/$GITHUB_BRANCH/public/index.html" -o public/index.html
-        curl -fsSL "https://raw.githubusercontent.com/laolaoshiren/binance-futures-dashboard/$GITHUB_BRANCH/public/app.js" -o public/app.js
+        if [ ! -f "public/index.html" ]; then
+            print_info "下载前端文件..."
+            curl -fsSL "https://raw.githubusercontent.com/laolaoshiren/binance-futures-dashboard/$GITHUB_BRANCH/public/index.html" -o public/index.html
+        fi
+        if [ ! -f "public/app.js" ]; then
+            curl -fsSL "https://raw.githubusercontent.com/laolaoshiren/binance-futures-dashboard/$GITHUB_BRANCH/public/app.js" -o public/app.js
+        fi
         
-        print_info "下载后端文件..."
-        curl -fsSL "https://raw.githubusercontent.com/laolaoshiren/binance-futures-dashboard/$GITHUB_BRANCH/server.js" -o server.js
-        curl -fsSL "https://raw.githubusercontent.com/laolaoshiren/binance-futures-dashboard/$GITHUB_BRANCH/binanceAPI.js" -o binanceAPI.js
+        if [ ! -f "server.js" ]; then
+            print_info "下载后端文件..."
+            curl -fsSL "https://raw.githubusercontent.com/laolaoshiren/binance-futures-dashboard/$GITHUB_BRANCH/server.js" -o server.js
+        fi
+        if [ ! -f "binanceAPI.js" ]; then
+            curl -fsSL "https://raw.githubusercontent.com/laolaoshiren/binance-futures-dashboard/$GITHUB_BRANCH/binanceAPI.js" -o binanceAPI.js
+        fi
     fi
     
     # 验证关键文件是否存在
     if [ ! -f "docker-compose.yml" ]; then
         print_error "下载失败：未找到 docker-compose.yml 文件"
         exit 1
+    fi
+    
+    # 检查并移除 docker-compose.yml 中的废弃 version 字段
+    if grep -q "^version:" docker-compose.yml 2>/dev/null; then
+        print_info "移除 docker-compose.yml 中的废弃 version 字段..."
+        sed -i '/^version:/d' docker-compose.yml
+        # 移除 version 行后的空行（如果有）
+        sed -i '/^$/N;/^\n$/d' docker-compose.yml
     fi
     
     print_success "项目文件下载完成"
