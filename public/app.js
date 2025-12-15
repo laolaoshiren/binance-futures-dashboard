@@ -1263,6 +1263,28 @@ async function refreshData() {
   }, 500);
 }
 
+// 为了兼容性，确保函数可以通过简单名称访问
+// 这些函数已经绑定到 window 对象，但为了确保兼容性，我们也创建别名
+if (typeof window !== 'undefined') {
+  // 确保所有函数都在全局作用域中可用
+  if (!window.openSettings && typeof window.openSettings === 'undefined') {
+    // 如果由于某种原因 window.openSettings 未定义，重新定义
+    window.openSettings = function() {
+      const modal = document.getElementById('settingsModal');
+      if (!modal) {
+        console.error('设置模态框未找到');
+        return;
+      }
+      modal.style.display = 'flex';
+      checkApiStatus().then(configured => {
+        if (configured) {
+          showConfigStatus('API 已配置', 'success');
+        }
+      });
+    };
+  }
+}
+
 // 初始化
 window.addEventListener('DOMContentLoaded', async () => {
   // 加载持久化状态
@@ -1274,7 +1296,11 @@ window.addEventListener('DOMContentLoaded', async () => {
     // 显示提示并打开设置
     setTimeout(() => {
       alert('⚠️ 请先配置 API Key 和 Secret 才能使用系统功能');
-      openSettings();
+      if (typeof window.openSettings === 'function') {
+        window.openSettings();
+      } else if (typeof openSettings === 'function') {
+        openSettings();
+      }
     }, 500);
   } else {
     // API 已配置，加载数据
