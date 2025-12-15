@@ -27,8 +27,18 @@ app.use(session({
   }
 }));
 
-// 静态文件服务
-app.use(express.static('public'));
+// 静态文件服务（禁用缓存以确保开发时获取最新文件）
+app.use(express.static('public', {
+  etag: false,
+  lastModified: false,
+  setHeaders: (res, path) => {
+    if (path.endsWith('.js') || path.endsWith('.html')) {
+      res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.set('Pragma', 'no-cache');
+      res.set('Expires', '0');
+    }
+  }
+}));
 
 // 检查 API 配置的中间件
 function checkApiConfig(req, res, next) {
