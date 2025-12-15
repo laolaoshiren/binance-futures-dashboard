@@ -4,7 +4,7 @@
 [![GitHub stars](https://img.shields.io/github/stars/laolaoshiren/binance-futures-dashboard)](https://github.com/laolaoshiren/binance-futures-dashboard/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/laolaoshiren/binance-futures-dashboard)](https://github.com/laolaoshiren/binance-futures-dashboard/network)
 
-> 币安合约记录展示系统 | A real-time Binance Futures trading dashboard
+> 币安合约记录展示系统 | A real-time Binance Futures trading dashboard 
 
 **项目地址**: [https://github.com/laolaoshiren/binance-futures-dashboard](https://github.com/laolaoshiren/binance-futures-dashboard)
 
