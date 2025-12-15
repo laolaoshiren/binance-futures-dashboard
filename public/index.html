@@ -850,7 +850,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h2>🔐 API 配置</h2>
-          <button class="modal-close" onclick="closeSettings()">&times;</button>
+          <button class="modal-close" onclick="if(typeof window.closeSettings === 'function') { window.closeSettings(); } else if(typeof closeSettings === 'function') { closeSettings(); }">&times;</button>
         </div>
         <div class="modal-body">
           <div class="form-group">
