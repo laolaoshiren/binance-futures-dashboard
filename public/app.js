@@ -1266,10 +1266,10 @@ window.addEventListener('DOMContentLoaded', async () => {
     }, 500);
   } else {
     // API 已配置，加载数据
-    loadAccountInfo();
-    loadPositions();
-    
-    // 每30秒自动刷新
-    setInterval(refreshData, 30000);
+  loadAccountInfo();
+  loadPositions();
+  
+  // 每30秒自动刷新
+  setInterval(refreshData, 30000);
   }
 });
