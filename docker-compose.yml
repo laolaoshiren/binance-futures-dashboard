@@ -1,8 +1,6 @@
 services:
   binance-viewer:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/laolaoshiren/binance-futures-dashboard:latest
     container_name: binance-futures-viewer
     restart: unless-stopped
     ports:

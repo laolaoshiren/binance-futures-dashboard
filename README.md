@@ -22,7 +22,11 @@ curl -fsSL https://raw.githubusercontent.com/laolaoshiren/binance-futures-dashbo
 wget -qO- https://raw.githubusercontent.com/laolaoshiren/binance-futures-dashboard/main/install.sh | bash
 ```
 
-> ⚠️ **注意**：安装脚本会自动检查 Docker 环境、拉取最新镜像并启动服务。启动后需要在网页上配置 API Key 和 Secret 才能使用。
+> ⚠️ **注意**：
+> - 安装脚本会自动检查 Docker 环境、从 GitHub Container Registry 拉取预构建镜像并启动服务
+> - 镜像由 GitHub Actions 自动构建，每次代码推送都会自动更新
+> - 启动后需要在网页上配置 API Key 和 Secret 才能使用
+> - 如果镜像尚未构建，请访问 [GitHub Actions](https://github.com/laolaoshiren/binance-futures-dashboard/actions) 查看构建状态
 
 ## ✨ 功能特性
 
@@ -74,13 +78,37 @@ npm start
 
 ## 🐳 Docker 部署
 
-### 使用 Docker Compose（推荐）
+### 使用预构建镜像（推荐）
+
+项目使用 GitHub Actions 自动构建 Docker 镜像并推送到 GitHub Container Registry。
+
+**使用 Docker Compose：**
 
 ```bash
+# 下载 docker-compose.yml
+curl -fsSL https://raw.githubusercontent.com/laolaoshiren/binance-futures-dashboard/main/docker-compose.yml -o docker-compose.yml
+
+# 拉取并启动服务
+docker-compose pull
 docker-compose up -d
 ```
 
-### 使用 Docker 命令
+**使用 Docker 命令：**
+
+```bash
+# 拉取镜像
+docker pull ghcr.io/laolaoshiren/binance-futures-dashboard:latest
+
+# 运行容器
+docker run -d \
+  --name binance-futures-viewer \
+  -p 3031:3031 \
+  ghcr.io/laolaoshiren/binance-futures-dashboard:latest
+```
+
+### 本地构建（开发环境）
+
+如果需要本地构建镜像：
 
 ```bash
 # 构建镜像

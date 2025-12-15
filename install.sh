@@ -137,99 +137,30 @@ create_project_dir() {
     cd "$PROJECT_DIR"
 }
 
-# 下载或更新项目文件
+# 下载 docker-compose.yml 文件
 download_project() {
-    print_info "下载项目文件..."
+    print_info "下载 docker-compose.yml 文件..."
     
-    GITHUB_REPO="https://github.com/laolaoshiren/binance-futures-dashboard.git"
     GITHUB_BRANCH="main"
     
-    # 检查是否安装了 git
-    if command -v git &> /dev/null; then
-        if [ -d ".git" ]; then
-            print_info "检测到 git 仓库，更新代码..."
-            git pull origin "$GITHUB_BRANCH" || {
-                print_warning "更新失败，尝试重新克隆..."
-                cd ..
-                rm -rf "$PROJECT_DIR"
-                mkdir -p "$PROJECT_DIR"
-                cd "$PROJECT_DIR"
-                git clone -b "$GITHUB_BRANCH" "$GITHUB_REPO" .
-            }
-        else
-            print_info "使用 git 克隆项目..."
-            git clone -b "$GITHUB_BRANCH" "$GITHUB_REPO" .
-        fi
-    else
-        print_warning "未安装 git，尝试直接下载必要文件..."
-        
-        # 即使文件已存在，也强制更新关键文件（特别是 docker-compose.yml）
-        print_info "更新 docker-compose.yml..."
-        curl -fsSL "https://raw.githubusercontent.com/laolaoshiren/binance-futures-dashboard/$GITHUB_BRANCH/docker-compose.yml" -o docker-compose.yml || {
-            print_error "下载 docker-compose.yml 失败"
-            exit 1
-        }
-        
-        # 如果其他文件不存在，则下载
-        if [ ! -f "Dockerfile" ]; then
-            print_info "下载 Dockerfile..."
-            curl -fsSL "https://raw.githubusercontent.com/laolaoshiren/binance-futures-dashboard/$GITHUB_BRANCH/Dockerfile" -o Dockerfile || {
-                print_error "下载 Dockerfile 失败"
-                exit 1
-            }
-        fi
-        
-        if [ ! -f "package.json" ]; then
-            print_info "下载 package.json..."
-            curl -fsSL "https://raw.githubusercontent.com/laolaoshiren/binance-futures-dashboard/$GITHUB_BRANCH/package.json" -o package.json || {
-                print_error "下载 package.json 失败"
-                exit 1
-            }
-        fi
-        
-        # 创建必要的目录和文件
-        mkdir -p public
-        if [ ! -f "public/index.html" ]; then
-            print_info "下载前端文件..."
-            curl -fsSL "https://raw.githubusercontent.com/laolaoshiren/binance-futures-dashboard/$GITHUB_BRANCH/public/index.html" -o public/index.html
-        fi
-        if [ ! -f "public/app.js" ]; then
-            curl -fsSL "https://raw.githubusercontent.com/laolaoshiren/binance-futures-dashboard/$GITHUB_BRANCH/public/app.js" -o public/app.js
-        fi
-        
-        if [ ! -f "server.js" ]; then
-            print_info "下载后端文件..."
-            curl -fsSL "https://raw.githubusercontent.com/laolaoshiren/binance-futures-dashboard/$GITHUB_BRANCH/server.js" -o server.js
-        fi
-        if [ ! -f "binanceAPI.js" ]; then
-            curl -fsSL "https://raw.githubusercontent.com/laolaoshiren/binance-futures-dashboard/$GITHUB_BRANCH/binanceAPI.js" -o binanceAPI.js
-        fi
-    fi
-    
-    # 验证关键文件是否存在
-    if [ ! -f "docker-compose.yml" ]; then
-        print_error "下载失败：未找到 docker-compose.yml 文件"
+    # 下载 docker-compose.yml 文件（这是唯一需要的文件）
+    curl -fsSL "https://raw.githubusercontent.com/laolaoshiren/binance-futures-dashboard/$GITHUB_BRANCH/docker-compose.yml" -o docker-compose.yml || {
+        print_error "下载 docker-compose.yml 失败"
         exit 1
-    fi
+    }
     
     # 检查并移除 docker-compose.yml 中的废弃 version 字段
     if grep -q "^version:" docker-compose.yml 2>/dev/null; then
         print_info "移除 docker-compose.yml 中的废弃 version 字段..."
         sed -i '/^version:/d' docker-compose.yml
-        # 移除 version 行后的空行（如果有）
         sed -i '/^$/N;/^\n$/d' docker-compose.yml
     fi
     
-    print_success "项目文件下载完成"
+    print_success "docker-compose.yml 下载完成"
     
-    # 获取 Git commit hash 作为版本号
-    if [ -d ".git" ]; then
-        VERSION=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
-        BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main")
-    else
-        VERSION="unknown"
-        BRANCH="main"
-    fi
+    # 获取版本信息（从镜像标签或使用默认值）
+    VERSION="latest"
+    BRANCH="main"
 }
 
 # 配置说明
@@ -404,32 +335,26 @@ stop_existing_containers() {
     fi
 }
 
-# 强制更新项目文件（确保使用最新代码）
-force_update_files() {
-    print_info "强制更新项目文件到最新版本..."
+# 更新 docker-compose.yml 文件
+update_docker_compose() {
+    print_info "更新 docker-compose.yml 文件..."
     
     GITHUB_BRANCH="main"
     
-    # 如果使用 git，直接拉取最新代码
-    if [ -d ".git" ] && command -v git &> /dev/null; then
-        print_info "使用 git 更新代码..."
-        git pull origin "$GITHUB_BRANCH" || true
-    else
-        # 强制更新关键文件
-        print_info "更新关键文件..."
-        curl -fsSL "https://raw.githubusercontent.com/laolaoshiren/binance-futures-dashboard/$GITHUB_BRANCH/docker-compose.yml" -o docker-compose.yml 2>/dev/null || true
-        curl -fsSL "https://raw.githubusercontent.com/laolaoshiren/binance-futures-dashboard/$GITHUB_BRANCH/public/app.js" -o public/app.js 2>/dev/null || true
-        curl -fsSL "https://raw.githubusercontent.com/laolaoshiren/binance-futures-dashboard/$GITHUB_BRANCH/public/index.html" -o public/index.html 2>/dev/null || true
-        curl -fsSL "https://raw.githubusercontent.com/laolaoshiren/binance-futures-dashboard/$GITHUB_BRANCH/server.js" -o server.js 2>/dev/null || true
-        curl -fsSL "https://raw.githubusercontent.com/laolaoshiren/binance-futures-dashboard/$GITHUB_BRANCH/binanceAPI.js" -o binanceAPI.js 2>/dev/null || true
-    fi
+    # 下载最新的 docker-compose.yml
+    curl -fsSL "https://raw.githubusercontent.com/laolaoshiren/binance-futures-dashboard/$GITHUB_BRANCH/docker-compose.yml" -o docker-compose.yml || {
+        print_error "下载 docker-compose.yml 失败"
+        exit 1
+    }
     
     # 检查并移除 docker-compose.yml 中的废弃 version 字段
-    if [ -f "docker-compose.yml" ] && grep -q "^version:" docker-compose.yml 2>/dev/null; then
+    if grep -q "^version:" docker-compose.yml 2>/dev/null; then
         print_info "移除 docker-compose.yml 中的废弃 version 字段..."
         sed -i '/^version:/d' docker-compose.yml
         sed -i '/^$/N;/^\n$/d' docker-compose.yml
     fi
+    
+    print_success "docker-compose.yml 已更新"
 }
 
 # 拉取镜像并启动服务
@@ -443,22 +368,35 @@ start_service() {
     # 检查端口占用
     check_port
     
-    # 强制更新文件到最新版本
-    force_update_files
+    # 更新 docker-compose.yml 文件
+    update_docker_compose
     
-    print_info "构建 Docker 镜像..."
-    docker-compose build --no-cache || {
-        print_warning "构建失败，尝试拉取镜像..."
-        docker-compose pull || true
-    }
+    # 拉取最新的 Docker 镜像
+    print_info "拉取最新的 Docker 镜像..."
+    DOCKER_IMAGE="ghcr.io/laolaoshiren/binance-futures-dashboard:latest"
+    
+    # 尝试拉取镜像
+    if docker pull "$DOCKER_IMAGE" 2>/dev/null; then
+        print_success "镜像拉取成功"
+    else
+        print_warning "镜像拉取失败，可能镜像尚未构建或需要认证"
+        print_info "如果这是首次运行，请等待 GitHub Actions 完成镜像构建"
+        print_info "或者使用本地构建模式（需要源代码）"
+        # 如果拉取失败，尝试使用 docker-compose pull
+        docker-compose pull || {
+            print_error "无法拉取镜像，请检查网络连接或等待镜像构建完成"
+            print_info "GitHub Actions 构建地址: https://github.com/laolaoshiren/binance-futures-dashboard/actions"
+            exit 1
+        }
+    fi
     
     print_info "启动服务..."
-    docker-compose up -d --build || {
+    docker-compose up -d || {
         print_error "启动失败，尝试清理后重新启动..."
         # 如果启动失败，再次清理并重试
         stop_existing_containers
         sleep 2
-        docker-compose up -d --build || {
+        docker-compose up -d || {
             print_error "服务启动失败，请检查日志: docker-compose logs"
             exit 1
         }
