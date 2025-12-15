@@ -16,22 +16,34 @@ async function checkApiStatus() {
   }
 }
 
-function openSettings() {
-  document.getElementById('settingsModal').style.display = 'flex';
+// 确保函数在全局作用域中
+window.openSettings = function() {
+  const modal = document.getElementById('settingsModal');
+  if (!modal) {
+    console.error('设置模态框未找到');
+    return;
+  }
+  modal.style.display = 'flex';
   checkApiStatus().then(configured => {
     if (configured) {
       showConfigStatus('API 已配置', 'success');
     }
   });
-}
+};
 
-function closeSettings() {
-  document.getElementById('settingsModal').style.display = 'none';
-  document.getElementById('configStatus').style.display = 'none';
-  document.getElementById('configStatus').className = 'config-status';
-}
+window.closeSettings = function() {
+  const modal = document.getElementById('settingsModal');
+  const statusEl = document.getElementById('configStatus');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+  if (statusEl) {
+    statusEl.style.display = 'none';
+    statusEl.className = 'config-status';
+  }
+};
 
-async function saveApiConfig() {
+window.saveApiConfig = async function() {
   const apiKey = document.getElementById('apiKey').value.trim();
   const apiSecret = document.getElementById('apiSecret').value.trim();
   
@@ -68,9 +80,9 @@ async function saveApiConfig() {
   } catch (error) {
     showConfigStatus('保存失败: ' + error.message, 'error');
   }
-}
+};
 
-async function clearApiConfig() {
+window.clearApiConfig = async function() {
   if (!confirm('确定要清除 API 配置吗？')) {
     return;
   }
@@ -97,9 +109,9 @@ async function clearApiConfig() {
   } catch (error) {
     showConfigStatus('清除失败: ' + error.message, 'error');
   }
-}
+};
 
-async function testApiConfig() {
+window.testApiConfig = async function() {
   const apiKey = document.getElementById('apiKey').value.trim();
   const apiSecret = document.getElementById('apiSecret').value.trim();
   
@@ -140,7 +152,7 @@ async function testApiConfig() {
   } catch (error) {
     showConfigStatus('测试失败: ' + error.message, 'error');
   }
-}
+};
 
 function showConfigStatus(message, type) {
   const statusEl = document.getElementById('configStatus');
