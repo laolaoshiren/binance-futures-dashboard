@@ -225,9 +225,42 @@ setup_info() {
     print_info "点击右上角'设置'按钮配置 API Key 和 Secret"
 }
 
+# 停止本地 Node.js 服务器
+stop_local_server() {
+    print_info "检查并停止本地开发服务器..."
+    
+    # 查找运行中的 node server.js 进程
+    local pids=$(ps aux | grep "[n]ode.*server.js" | awk '{print $2}')
+    if [ -n "$pids" ]; then
+        print_warning "发现本地 Node.js 服务器进程，正在停止..."
+        for pid in $pids; do
+            kill -9 "$pid" 2>/dev/null && print_info "已停止进程 $pid" || true
+        done
+        sleep 2
+    fi
+    
+    # 也检查是否有其他 Node.js 进程占用 3031 端口
+    if command -v lsof &> /dev/null; then
+        local port_pids=$(lsof -ti :3031 2>/dev/null)
+        if [ -n "$port_pids" ]; then
+            for pid in $port_pids; do
+                # 检查是否是 node 进程
+                if ps -p "$pid" -o comm= 2>/dev/null | grep -q node; then
+                    print_warning "发现 Node.js 进程 $pid 占用端口 3031，正在停止..."
+                    kill -9 "$pid" 2>/dev/null || true
+                fi
+            done
+            sleep 2
+        fi
+    fi
+}
+
 # 检查端口占用并自动处理
 check_port() {
     PORT=3031
+    
+    # 先停止本地服务器
+    stop_local_server
     
     # 检查端口是否被占用的函数
     is_port_in_use() {
@@ -323,6 +356,9 @@ check_port() {
 
 # 拉取镜像并启动服务
 start_service() {
+    # 先停止本地开发服务器
+    stop_local_server
+    
     # 检查端口占用
     check_port
     
