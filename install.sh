@@ -354,10 +354,48 @@ check_port() {
     fi
 }
 
+# 停止并删除现有容器
+stop_existing_containers() {
+    print_info "检查并清理现有容器..."
+    
+    # 1. 先停止并删除当前目录的 docker-compose 容器
+    if [ -f "docker-compose.yml" ]; then
+        print_info "停止现有 Docker Compose 服务..."
+        docker-compose down 2>/dev/null || true
+        docker-compose rm -f 2>/dev/null || true
+        sleep 2
+    fi
+    
+    # 2. 明确查找并删除 binance-futures-viewer 容器（无论状态如何）
+    if docker ps -a --format "{{.Names}}" 2>/dev/null | grep -q "^binance-futures-viewer$"; then
+        print_info "发现 binance-futures-viewer 容器，正在停止并删除..."
+        docker stop binance-futures-viewer 2>/dev/null || true
+        docker rm -f binance-futures-viewer 2>/dev/null || true
+        sleep 2
+    fi
+    
+    # 3. 查找所有可能相关的容器（通过名称模式匹配）
+    EXISTING_CONTAINERS=$(docker ps -a --format "{{.ID}}\t{{.Names}}" 2>/dev/null | grep -E "binance-futures-viewer|binance-viewer" || true)
+    if [ -n "$EXISTING_CONTAINERS" ]; then
+        print_info "发现相关容器，正在清理..."
+        echo "$EXISTING_CONTAINERS" | while read -r container_id container_name; do
+            if [ -n "$container_id" ]; then
+                print_info "停止并删除容器: $container_name ($container_id)"
+                docker stop "$container_id" 2>/dev/null || true
+                docker rm -f "$container_id" 2>/dev/null || true
+            fi
+        done
+        sleep 2
+    fi
+}
+
 # 拉取镜像并启动服务
 start_service() {
     # 先停止本地开发服务器
     stop_local_server
+    
+    # 停止并删除现有容器（避免名称冲突）
+    stop_existing_containers
     
     # 检查端口占用
     check_port
@@ -369,7 +407,16 @@ start_service() {
     }
     
     print_info "启动服务..."
-    docker-compose up -d --build
+    docker-compose up -d --build || {
+        print_error "启动失败，尝试清理后重新启动..."
+        # 如果启动失败，再次清理并重试
+        stop_existing_containers
+        sleep 2
+        docker-compose up -d --build || {
+            print_error "服务启动失败，请检查日志: docker-compose logs"
+            exit 1
+        }
+    }
     
     # 等待服务启动
     sleep 5
